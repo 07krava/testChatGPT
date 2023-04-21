@@ -1,17 +1,22 @@
 package com.example.testchatgpt.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Objects;
+
 @Entity
-@Table(name = "Location")
 @Data
+@Table(name = "Location")
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Location {
 
     @Id
@@ -31,8 +36,15 @@ public class Location {
     private int apartmentNumber;
     @Column(name = "zip_code")
     private String zipCode;
+    @JsonIgnore
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "housing_id", referencedColumnName = "id")
+    @MapsId
     private Housing housing;
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 
 }

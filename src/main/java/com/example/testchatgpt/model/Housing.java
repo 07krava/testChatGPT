@@ -1,5 +1,7 @@
 package com.example.testchatgpt.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,13 +11,16 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
 @Entity
-@Table(name = "housing")
 @Data
+@Table(name = "housing")
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Housing {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,6 +32,7 @@ public class Housing {
     @Column(name = "description")
     private String description;
 
+    @JsonIgnore
     @OneToOne(mappedBy = "housing", cascade = CascadeType.ALL)
     private Location location;
 
@@ -39,6 +45,16 @@ public class Housing {
     @Column(name = "amount_people")
     private Integer amountPeople;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "housing", cascade = CascadeType.ALL)
     private List<Photo> photos = new ArrayList<>();
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "housing", cascade = CascadeType.ALL)
+    private Set<Booking> bookings;
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 }

@@ -39,9 +39,6 @@ public class PhotoDTO {
         PhotoDTO photoDTO = new PhotoDTO();
         photoDTO.setId(id);
         photoDTO.setFileName(file.getOriginalFilename());
-//        photoDTO.setFileSize(file.getSize());
-//        photoDTO.setContentType(file.getContentType());
-//        photoDTO.setContent(file.getBytes());
         return photoDTO;
     }
 }

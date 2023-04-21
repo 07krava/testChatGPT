@@ -7,6 +7,7 @@ import com.example.testchatgpt.model.Photo;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 
 public interface HousingService {
@@ -28,4 +29,8 @@ public interface HousingService {
    void deleteHousing(Long id);
 
    void deleteImageByIdFromHousingId(Long housingId, Long imageId);
+
+   List<Housing> getBookedHousing(Date startDate, Date endDate);
+
+   List<Housing> getAvailableHousings(Date startDate, Date endDate);
 }

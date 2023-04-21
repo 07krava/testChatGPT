@@ -45,6 +45,7 @@ public class HousingDTO {
         location.setStreet(housing.getLocation().getStreet());
         location.setHouseNumber(housing.getLocation().getHouseNumber());
         location.setApartmentNumber(housing.getLocation().getApartmentNumber());
+        location.setZipCode(housing.getLocation().getZipCode());
 
         List<PhotoDTO> photoDTOList = new ArrayList<>();
         for (Photo photo : housing.getPhotos()) {
@@ -57,5 +58,39 @@ public class HousingDTO {
 
         housingDTO.setPhotos(photoDTOList);
         return housingDTO;
+    }
+
+    public static Housing convertToEntity(HousingDTO housingDTO) {
+        Housing housing = new Housing();
+        housing.setId(housingDTO.getId());
+        housing.setTitle(housingDTO.getTitle());
+        housing.setAmountPeople(housingDTO.getAmountPeople());
+        housing.setPrice(housingDTO.getPrice());
+        housing.setDescription(housingDTO.getDescription());
+        housing.setActive(housingDTO.isActive());
+
+        Location location = new Location();
+        location.setCountry(housingDTO.getLocation().getCountry());
+        location.setRegion(housingDTO.getLocation().getRegion());
+        location.setCity(housingDTO.getLocation().getCity());
+        location.setStreet(housingDTO.getLocation().getStreet());
+        location.setHouseNumber(housingDTO.getLocation().getHouseNumber());
+        location.setApartmentNumber(housingDTO.getLocation().getApartmentNumber());
+        location.setZipCode(housingDTO.getLocation().getZipCode());
+
+        housing.setLocation(location);
+
+        List<Photo> photoEntities = new ArrayList<>();
+        for (PhotoDTO photoDTO : housingDTO.getPhotos()) {
+            Photo photo = new Photo();
+            photo.setId(photoDTO.getId());
+            photo.setFileName(photoDTO.getFileName());
+            photo.setData(photoDTO.getData());
+            photo.setHousing(housing);
+            photoEntities.add(photo);
+        }
+        housing.setPhotos(photoEntities);
+
+        return housing;
     }
 }

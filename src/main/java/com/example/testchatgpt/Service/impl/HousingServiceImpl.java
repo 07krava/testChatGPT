@@ -5,9 +5,11 @@ import com.example.testchatgpt.Service.PhotoService;
 import com.example.testchatgpt.dto.HousingDTO;
 import com.example.testchatgpt.dto.LocationDTO;
 import com.example.testchatgpt.dto.PhotoDTO;
+import com.example.testchatgpt.model.Booking;
 import com.example.testchatgpt.model.Housing;
 import com.example.testchatgpt.model.Location;
 import com.example.testchatgpt.model.Photo;
+import com.example.testchatgpt.repository.BookingRepository;
 import com.example.testchatgpt.repository.HousingRepository;
 import com.example.testchatgpt.repository.PhotoRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -17,12 +19,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.example.testchatgpt.dto.HousingDTO.convertToDTO;
+import static com.example.testchatgpt.dto.HousingDTO.convertToEntity;
 import static com.example.testchatgpt.dto.PhotoDTO.convertToPhoto;
 
 @Slf4j
@@ -32,12 +33,14 @@ public class HousingServiceImpl implements HousingService {
     private final HousingRepository housingRepository;
     private final PhotoRepository photoRepository;
     private final PhotoService photoService;
+    private final BookingRepository bookingRepository;
 
     @Autowired
-    public HousingServiceImpl(HousingRepository housingRepository, PhotoRepository photoRepository, PhotoService photoService) {
+    public HousingServiceImpl(HousingRepository housingRepository, BookingRepository bookingRepository, PhotoRepository photoRepository, PhotoService photoService) {
         this.housingRepository = housingRepository;
         this.photoRepository = photoRepository;
         this.photoService = photoService;
+        this.bookingRepository = bookingRepository;
     }
 
     @Override
@@ -67,7 +70,7 @@ public class HousingServiceImpl implements HousingService {
         housingRepository.save(housing);
 
         // Создание и сохранение объекта Location
-        LocationDTO location = new LocationDTO();
+        Location location = new Location();
         location.setCountry(housingDTO.getLocation().getCountry());
         location.setRegion(housingDTO.getLocation().getRegion());
         location.setCity(housingDTO.getLocation().getCity());
@@ -76,8 +79,7 @@ public class HousingServiceImpl implements HousingService {
         location.setApartmentNumber(housingDTO.getLocation().getApartmentNumber());
         location.setZipCode(housingDTO.getLocation().getZipCode());
         location.setHousing(housing);
-
-        housing.setLocation(LocationDTO.convertToLocation(location));
+        housing.setLocation(location);
 
         List<Photo> photoEntities = new ArrayList<>();
         for (MultipartFile file : files) {
@@ -86,7 +88,6 @@ public class HousingServiceImpl implements HousingService {
             photoDTO.setData(file.getBytes());
             photoDTO.setHousing(housing);
             photoEntities.add(convertToPhoto(photoDTO));
-
         }
         housing.setPhotos(photoEntities);
 
@@ -104,9 +105,31 @@ public class HousingServiceImpl implements HousingService {
         // Update fields of HousingEntity based on HousingDTO
         housingEntity.setTitle(housingDTO.getTitle());
         housingEntity.setDescription(housingDTO.getDescription());
-        housingEntity.setLocation(housingDTO.getLocation());
         housingEntity.setAmountPeople(housingDTO.getAmountPeople());
         housingEntity.setPrice(housingDTO.getPrice());
+        housingEntity.setActive(housingDTO.isActive());
+
+        Location location = housingEntity.getLocation();
+        if (location != null) {
+            location.setCountry(housingDTO.getLocation().getCountry());
+            location.setRegion(housingDTO.getLocation().getRegion());
+            location.setCity(housingDTO.getLocation().getCity());
+            location.setStreet(housingDTO.getLocation().getStreet());
+            location.setHouseNumber(housingDTO.getLocation().getHouseNumber());
+            location.setApartmentNumber(housingDTO.getLocation().getApartmentNumber());
+            location.setZipCode(housingDTO.getLocation().getZipCode());
+        } else {
+            location = new Location();
+            location.setCountry(housingDTO.getLocation().getCountry());
+            location.setRegion(housingDTO.getLocation().getRegion());
+            location.setCity(housingDTO.getLocation().getCity());
+            location.setStreet(housingDTO.getLocation().getStreet());
+            location.setHouseNumber(housingDTO.getLocation().getHouseNumber());
+            location.setApartmentNumber(housingDTO.getLocation().getApartmentNumber());
+            location.setZipCode(housingDTO.getLocation().getZipCode());
+            location.setHousing(convertToEntity(housingDTO));
+            housingDTO.setLocation(location);
+        }
 
         // Update photos of HousingEntity based on files
         if (files != null && files.length > 0) {
@@ -218,5 +241,40 @@ public class HousingServiceImpl implements HousingService {
         } else {
             throw new NullPointerException("Housing not found with id: " + id);
         }
+    }
+    @Override
+    public List<Housing> getAvailableHousings(Date startDate, Date endDate) {
+        List<Housing> allHousing = housingRepository.findAll();
+        Set<Housing> bookedHousing = new HashSet<>();
+        for (Housing housing : allHousing) {
+            for (Booking booking : housing.getBookings()) {
+                if (isOverlapping(booking.getStartDate(), booking.getEndDate(), startDate, endDate)) {
+                    bookedHousing.add(housing);
+                    break;
+                }
+            }
+        }
+        allHousing.removeAll(bookedHousing);
+        return allHousing;
+    }
+
+    private boolean isOverlapping(Date start1, Date end1, Date start2, Date end2) {
+        return start1.before(end2) && start2.before(end1);
+    }
+
+    @Override
+    public List<Housing> getBookedHousing(Date startDate, Date endDate) {
+        List<Housing> allHousing = housingRepository.findAll();
+        Set<Housing> bookedHousing = new HashSet<>();
+        for (Housing housing : allHousing) {
+            for (Booking booking : housing.getBookings()) {
+                if (isOverlapping(booking.getStartDate(), booking.getEndDate(), startDate, endDate)) {
+                    bookedHousing.add(housing);
+                    break;
+                }
+            }
+        }
+        allHousing.removeAll(bookedHousing);
+        return new ArrayList<>(bookedHousing);
     }
 }

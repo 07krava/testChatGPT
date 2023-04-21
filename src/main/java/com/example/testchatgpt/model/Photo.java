@@ -5,8 +5,7 @@ import lombok.*;
 
 @Entity
 @Table(name = "photo")
-@Getter
-@Setter
+@Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
@@ -18,7 +17,7 @@ public class Photo {
     private String fileName;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "housing_id")
+    @JoinColumn(name = "housing_id", referencedColumnName = "id")
     private Housing housing;
 
     @Column(name = "data", nullable = false, columnDefinition = "mediumblob")

@@ -2,7 +2,6 @@ package com.example.testchatgpt.dto;
 
 import com.example.testchatgpt.model.Housing;
 import com.example.testchatgpt.model.Location;
-import com.example.testchatgpt.model.Photo;
 import lombok.Data;
 
 @Data
@@ -42,5 +41,4 @@ public class LocationDTO {
         location.setHousing(locationDTO.getHousing());
         return location;
     }
-
 }

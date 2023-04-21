@@ -7,12 +7,14 @@ import com.example.testchatgpt.model.Housing;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 @Slf4j
 @RestController
@@ -84,6 +86,18 @@ import java.util.List;
     public ResponseEntity<Void> deletePhoto(@PathVariable Long housingId, @PathVariable Long imageId) {
         housingService.deleteImageByIdFromHousingId(housingId, imageId);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/available")
+    public List<Housing> getAvailableHousing(@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
+                                             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate) {
+        return housingService.getAvailableHousings(startDate, endDate);
+    }
+
+    @GetMapping("/booked")
+    public List<Housing> getBookedHousing(@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
+                                          @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate) {
+        return housingService.getBookedHousing(startDate, endDate);
     }
 }
 

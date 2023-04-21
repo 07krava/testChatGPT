@@ -11,4 +11,5 @@ public interface HousingRepository extends JpaRepository<Housing, Long> {
     @Query("SELECT h FROM Housing h JOIN h.location loc WHERE loc.city = :city")
     List<Housing> findByCity(@Param("city") String city);
 
+    List<Housing> findByIsActiveTrue();
 }
