@@ -29,6 +29,15 @@ public class Housing {
     @Column(name = "price")
     private BigDecimal price;
 
+    @Column(name = "quantity_bedrooms")
+    private Integer bedRooms;
+
+    @Column(name ="quantity_beds")
+    private Integer beds;
+
+    @Column(name = "quantity_bathrooms")
+    private Integer bathRooms;
+
     @Column(name = "description")
     private String description;
 
@@ -42,12 +51,21 @@ public class Housing {
     @Column(name = "is_active", columnDefinition = "BOOLEAN DEFAULT true")
     private boolean isActive;
 
-    @Column(name = "amount_people")
-    private Integer amountPeople;
+    @Column(name = "max_amount_people")
+    private Integer maxAmountPeople;
 
     @JsonIgnore
     @OneToMany(mappedBy = "housing", cascade = CascadeType.ALL)
     private List<Photo> photos = new ArrayList<>();
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "housing_type")
+    private HousingType housingType;
+
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "owner_id")
+    private User owner;
 
     @JsonIgnore
     @OneToMany(mappedBy = "housing", cascade = CascadeType.ALL)

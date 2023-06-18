@@ -1,6 +1,7 @@
 package com.example.testchatgpt.dto;
 
 import com.example.testchatgpt.model.Housing;
+import com.example.testchatgpt.model.HousingType;
 import com.example.testchatgpt.model.Location;
 import com.example.testchatgpt.model.Photo;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -25,17 +26,26 @@ public class HousingDTO {
     private Location location;
     private String title;
     private boolean isActive;
-    private Integer amountPeople;
+    private Integer maxAmountPeople;
+    private Integer beds;
+    private Integer bedRooms;
+    private Integer bathRooms;
+    private HousingType housingType;
     private List<PhotoDTO> photos;
 
     public static HousingDTO convertToDTO(Housing housing){
      HousingDTO housingDTO = new HousingDTO();
         housingDTO.setId(housing.getId());
         housingDTO.setTitle(housing.getTitle());
-        housingDTO.setAmountPeople(housing.getAmountPeople());
+        housingDTO.setMaxAmountPeople(housing.getMaxAmountPeople());
+        housingDTO.setBeds(housing.getBeds());
+        housingDTO.setBathRooms(housing.getBathRooms());
+        housingDTO.setBedRooms(housing.getBedRooms());
         housingDTO.setLocation(housing.getLocation());
         housingDTO.setPrice(housing.getPrice());
         housingDTO.setDescription(housing.getDescription());
+        housingDTO.setHousingType(housing.getHousingType());
+
         housingDTO.setActive(housing.isActive());
 
         LocationDTO location = new LocationDTO();
@@ -64,9 +74,13 @@ public class HousingDTO {
         Housing housing = new Housing();
         housing.setId(housingDTO.getId());
         housing.setTitle(housingDTO.getTitle());
-        housing.setAmountPeople(housingDTO.getAmountPeople());
+        housing.setMaxAmountPeople(housingDTO.getMaxAmountPeople());
+        housing.setBeds(housingDTO.getBeds());
+        housing.setBathRooms(housingDTO.getBathRooms());
+        housing.setBedRooms(housingDTO.getBedRooms());
         housing.setPrice(housingDTO.getPrice());
         housing.setDescription(housingDTO.getDescription());
+        housing.setHousingType(housingDTO.getHousingType());
         housing.setActive(housingDTO.isActive());
 
         Location location = new Location();

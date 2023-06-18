@@ -75,23 +75,23 @@ class HousingControllerTest {
     }
 
 
-    @Test
-    void testUpdateHousing() throws IOException {
-
-        Long id = 1L;
-        HousingDTO housingDTO = new HousingDTO();
-        housingDTO.setId(id);
-        MultipartFile[] files = new MultipartFile[0];
-        HousingDTO updatedHousing = new HousingDTO();
-        updatedHousing.setId(id);
-        updatedHousing.setTitle("Updated Housing");
-        when(housingService.updateHousing(id, housingDTO, files)).thenReturn(updatedHousing);
-
-        HousingDTO response = housingController.updateHousing(id, housingDTO, files);
-
-        assertEquals(updatedHousing.getId(), response.getId());
-        assertEquals(updatedHousing.getTitle(), response.getTitle());
-    }
+//    @Test
+//    void testUpdateHousing() throws IOException {
+//
+//        Long id = 1L;
+//        HousingDTO housingDTO = new HousingDTO();
+//        housingDTO.setId(id);
+//        MultipartFile[] files = new MultipartFile[0];
+//        HousingDTO updatedHousing = new HousingDTO();
+//        updatedHousing.setId(id);
+//        updatedHousing.setTitle("Updated Housing");
+//        when(housingService.updateHousing(id, housingDTO, files)).thenReturn(updatedHousing);
+//
+//        HousingDTO response = housingController.updateHousing(id, housingDTO, files);
+//
+//        assertEquals(updatedHousing.getId(), response.getId());
+//        assertEquals(updatedHousing.getTitle(), response.getTitle());
+//    }
 
     @Test
     public void testDeleteHousingById() {

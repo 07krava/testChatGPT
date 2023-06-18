@@ -2,11 +2,9 @@ package com.example.testchatgpt.controller;
 
 import com.example.testchatgpt.Service.BookingService;
 import com.example.testchatgpt.model.Booking;
-import com.example.testchatgpt.model.Housing;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -18,11 +16,6 @@ public class BookingController {
     @Autowired
     public BookingController(BookingService bookingService) {
         this.bookingService = bookingService;
-    }
-
-    @GetMapping("/available-housing")
-    public List<Housing> findAvailableHousing(@RequestParam Date startDate, @RequestParam Date endDate) {
-        return bookingService.findAvailableHousingByDates(startDate, endDate);
     }
 
     @PostMapping("/create")

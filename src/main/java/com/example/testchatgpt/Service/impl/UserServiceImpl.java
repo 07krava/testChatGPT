@@ -1,8 +1,11 @@
 package com.example.testchatgpt.Service.impl;
 
 import com.example.testchatgpt.Service.UserService;
+import com.example.testchatgpt.model.Role;
 import com.example.testchatgpt.model.User;
+import com.example.testchatgpt.model.Wallet;
 import com.example.testchatgpt.repository.UserRepository;
+import com.example.testchatgpt.repository.WalletRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,14 +16,35 @@ import java.util.List;
 public class UserServiceImpl implements UserService {
 
     private UserRepository userRepository;
+    private WalletRepository walletRepository;
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository) {
+    public UserServiceImpl(UserRepository userRepository, WalletRepository walletRepository) {
         this.userRepository = userRepository;
+        this.walletRepository = walletRepository;
     }
 
     @Override
-    public User createUser(User user) {
+    public User createUser(User user, Wallet wallet) {
+
+        User existingUser = userRepository.findByUsername(user.getUsername());
+
+        if (existingUser != null){
+            throw new RuntimeException("This user already exists!");
+        }
+
+        Wallet walletEntity = new Wallet();
+        if (wallet != null) {
+            walletEntity.setBalance(wallet.getBalance());
+            walletEntity.setCurrency(wallet.getCurrency());
+            walletEntity.setFrozenBalance(wallet.getFrozenBalance());
+        }
+        walletEntity.setUser(user);
+
+        user.setWallet(walletEntity);
+        user.getRoles().add(Role.USER);
+        walletRepository.save(walletEntity);
+
         return userRepository.save(user);
     }
 
@@ -48,6 +72,8 @@ public class UserServiceImpl implements UserService {
         userEntity.setEmail(user.getEmail());
         userEntity.setPhone(user.getPhone());
         userEntity.setPassword(user.getPassword());
+        userEntity.setRoles(user.getRoles());
+        userEntity.setBookings(user.getBookings());
         userEntity.setBookings(user.getBookings());
 
         return userRepository.save(userEntity);

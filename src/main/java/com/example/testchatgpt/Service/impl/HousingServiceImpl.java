@@ -5,13 +5,11 @@ import com.example.testchatgpt.Service.PhotoService;
 import com.example.testchatgpt.dto.HousingDTO;
 import com.example.testchatgpt.dto.LocationDTO;
 import com.example.testchatgpt.dto.PhotoDTO;
-import com.example.testchatgpt.model.Booking;
-import com.example.testchatgpt.model.Housing;
-import com.example.testchatgpt.model.Location;
-import com.example.testchatgpt.model.Photo;
+import com.example.testchatgpt.model.*;
 import com.example.testchatgpt.repository.BookingRepository;
 import com.example.testchatgpt.repository.HousingRepository;
 import com.example.testchatgpt.repository.PhotoRepository;
+import com.example.testchatgpt.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,13 +32,15 @@ public class HousingServiceImpl implements HousingService {
     private final PhotoRepository photoRepository;
     private final PhotoService photoService;
     private final BookingRepository bookingRepository;
+    private final UserRepository userRepository;
 
     @Autowired
-    public HousingServiceImpl(HousingRepository housingRepository, BookingRepository bookingRepository, PhotoRepository photoRepository, PhotoService photoService) {
+    public HousingServiceImpl(HousingRepository housingRepository, BookingRepository bookingRepository, PhotoRepository photoRepository, PhotoService photoService, UserRepository userRepository) {
         this.housingRepository = housingRepository;
         this.photoRepository = photoRepository;
         this.photoService = photoService;
         this.bookingRepository = bookingRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -56,16 +56,35 @@ public class HousingServiceImpl implements HousingService {
         return result;
     }
 
-    //worked
     @Override
-    public HousingDTO createHousing(HousingDTO housingDTO, MultipartFile[] files) throws IOException {
+    public List<Housing> findByMaxNumberOfPeopleThatCanBeAccommodated(int maxAmountPeople) {
+        List<Housing> housings = housingRepository.findAll();
+        List<Housing> result = new ArrayList<>();
+        for (Housing housing : housings) {
+            if (housing.getMaxAmountPeople() == maxAmountPeople) {
+                result.add(housing);
+            }
+        }
+        return result;
+    }
+
+    @Override
+    public HousingDTO createHousing(HousingDTO housingDTO, MultipartFile[] files, Long ownerId) throws IOException {
+
+        User owner = userRepository.findById(ownerId).orElseThrow(() -> new EntityNotFoundException("Owner not found by id " ));
 
         Housing housing = new Housing();
         housing.setDescription(housingDTO.getDescription());
         housing.setTitle(housingDTO.getTitle());
-        housing.setAmountPeople(housingDTO.getAmountPeople());
+        housing.setMaxAmountPeople(housingDTO.getMaxAmountPeople());
+        housing.setBeds(housingDTO.getBeds());
+        housing.setBedRooms(housingDTO.getBedRooms());
+        housing.setBathRooms(housingDTO.getBathRooms());
         housing.setPrice(housingDTO.getPrice());
+        housing.setHousingType(housingDTO.getHousingType());
         housing.setActive(housingDTO.isActive());
+
+        housing.setOwner(owner);
 
         housingRepository.save(housing);
 
@@ -96,17 +115,25 @@ public class HousingServiceImpl implements HousingService {
         return convertToDTO(housing);
     }
 
-    // worked
     @Override
-    public HousingDTO updateHousing(Long housingId, HousingDTO housingDTO, MultipartFile[] files) throws IOException {
+    public HousingDTO updateHousing(Long housingId, HousingDTO housingDTO, MultipartFile[] files, Long ownerId) throws IOException {
         Housing housingEntity = housingRepository.findById(housingId)
                 .orElseThrow(() -> new EntityNotFoundException("Housing not found with id " + housingId));
+
+        // Check if the owner of the housing matches the provided ownerId
+        if (!housingEntity.getOwner().getId().equals(ownerId)) {
+            throw new UnauthorizedException("You are not authorized to update this housing.");
+        }
 
         // Update fields of HousingEntity based on HousingDTO
         housingEntity.setTitle(housingDTO.getTitle());
         housingEntity.setDescription(housingDTO.getDescription());
-        housingEntity.setAmountPeople(housingDTO.getAmountPeople());
+        housingEntity.setMaxAmountPeople(housingDTO.getMaxAmountPeople());
+        housingEntity.setBeds(housingDTO.getBeds());
+        housingEntity.setBedRooms(housingDTO.getBedRooms());
+        housingEntity.setBathRooms(housingDTO.getBathRooms());
         housingEntity.setPrice(housingDTO.getPrice());
+        housingEntity.setHousingType(housingDTO.getHousingType());
         housingEntity.setActive(housingDTO.isActive());
 
         Location location = housingEntity.getLocation();
@@ -151,7 +178,6 @@ public class HousingServiceImpl implements HousingService {
         return convertToDTO(savedHousing);
     }
 
-    // worked
     @Override
     public List<PhotoDTO> getPhotosByHousingId(Long housingId) {
         List<PhotoDTO> photoDTOList = new ArrayList<>();
@@ -172,7 +198,6 @@ public class HousingServiceImpl implements HousingService {
         return photoDTOList;
     }
 
-    //worked
     @Override
     public Photo getImageById(Long housingId, Long imageId) {
         log.info("Start method getPhotoByIdFromHousingId");
@@ -192,7 +217,6 @@ public class HousingServiceImpl implements HousingService {
         return photo;
     }
 
-    //worked
     @Override
     public List<HousingDTO> getAllHousing() {
         List<Housing> housingEntities = housingRepository.findAll();
@@ -205,7 +229,6 @@ public class HousingServiceImpl implements HousingService {
         return housingDTOS;
     }
 
-    //worked
     @Override
     public void deleteHousing(Long id) {
         Optional<Housing> housingEntityOptional = housingRepository.findById(id);
@@ -219,7 +242,6 @@ public class HousingServiceImpl implements HousingService {
         }
     }
 
-    //worked
     @Override
     public void deleteImageByIdFromHousingId(Long housingId, Long imageId) {
         Housing housing = housingRepository.findById(housingId).orElseThrow(NullPointerException::new);
@@ -231,7 +253,6 @@ public class HousingServiceImpl implements HousingService {
         photoRepository.deleteById(imageId);
     }
 
-    //worked
     @Override
     public HousingDTO getHousingById(Long id) {
         Optional<Housing> housingEntityOptional = housingRepository.findById(id);
@@ -242,6 +263,7 @@ public class HousingServiceImpl implements HousingService {
             throw new NullPointerException("Housing not found with id: " + id);
         }
     }
+
     @Override
     public List<Housing> getAvailableHousings(Date startDate, Date endDate) {
         List<Housing> allHousing = housingRepository.findAll();

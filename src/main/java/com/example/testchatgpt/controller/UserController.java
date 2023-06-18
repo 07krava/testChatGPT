@@ -2,10 +2,8 @@ package com.example.testchatgpt.controller;
 
 import com.example.testchatgpt.Service.UserService;
 import com.example.testchatgpt.model.User;
+import com.example.testchatgpt.model.Wallet;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.RequestEntity;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,29 +19,30 @@ public class UserController {
         this.userService = userService;
     }
 
-    @PostMapping("/addUser")
-    public User createUser(@RequestBody User user){
-            User userEntity = userService.createUser(user);
-            return userEntity;
-    }
+//    @PostMapping("/addUser")
+//    public User createUser(@RequestBody User user) {
+//        Wallet wallet = user.getWallet();
+//        User userEntity = userService.createUser(user, wallet);
+//        return userEntity;
+//    }
 
     @GetMapping("/{id}")
-    public User getUserById(@PathVariable Long id){
+    public User getUserById(@PathVariable Long id) {
         return userService.getUserById(id);
     }
 
     @GetMapping("/allUsers")
-    public List<User> allUsers(){
+    public List<User> allUsers() {
         return userService.listUsers();
     }
 
     @DeleteMapping("/deleteUser/{id}")
-    public void deleteUserById(@PathVariable Long id){
+    public void deleteUserById(@PathVariable Long id) {
         userService.deleteUser(id);
     }
 
     @PutMapping("/updateUser/{id}")
-    public User updateUser(@PathVariable Long id, @RequestBody User user){
+    public User updateUser(@PathVariable Long id, @RequestBody User user) {
         return userService.updateUser(id, user);
     }
 }

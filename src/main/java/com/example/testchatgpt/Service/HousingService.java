@@ -14,9 +14,9 @@ public interface HousingService {
 
    List<Housing> findByCity(String city);
 
-   HousingDTO createHousing(HousingDTO housingDTO, MultipartFile[] files) throws IOException;
+   HousingDTO createHousing(HousingDTO housingDTO, MultipartFile[] files, Long ownerId) throws IOException;
 
-   HousingDTO updateHousing(Long id, HousingDTO housingDTO, MultipartFile[] files) throws IOException;
+   HousingDTO updateHousing(Long id, HousingDTO housingDTO, MultipartFile[] files, Long ownerId) throws IOException;
 
    List<PhotoDTO> getPhotosByHousingId(Long housingId);
 
@@ -33,4 +33,6 @@ public interface HousingService {
    List<Housing> getBookedHousing(Date startDate, Date endDate);
 
    List<Housing> getAvailableHousings(Date startDate, Date endDate);
+
+   List<Housing> findByMaxNumberOfPeopleThatCanBeAccommodated(int maxAmountPeople);
 }

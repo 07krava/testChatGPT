@@ -64,7 +64,6 @@ public class PhotoServiceImpl implements PhotoService {
         photoDTO.setId(photoEntity.getId());
         photoDTO.setFileName(photoEntity.getFileName());
         photoDTO.setData(photoEntity.getData());
-        //photoDTO.setHousingId(photoEntity.getHousing().getId());
 
         return photoDTO;
     }
