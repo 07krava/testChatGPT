@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -25,15 +24,6 @@ public class HousingController {
 
     @Autowired
     private HousingService housingService;
-
-    @PreAuthorize("hasRole('OWNER')")
-    @PostMapping("/add")
-    public ResponseEntity<HousingDTO> createHousing(@ModelAttribute HousingDTO housing,
-                                                    @RequestParam("file") MultipartFile[] files,
-                                                    @RequestParam("ownerId") Long ownerId) throws IOException, IOException {
-        HousingDTO newHousing = housingService.createHousing(housing, files, ownerId);
-        return new ResponseEntity<>(newHousing, HttpStatus.OK);
-    }
 
     @GetMapping("/searchByCity/{city}")
     public List<Housing> searchByCity(@PathVariable("city") String city, @ModelAttribute Housing housing) {
@@ -60,8 +50,14 @@ public class HousingController {
     }
 
     @GetMapping("/getHousing/{id}")
-    public HousingDTO getHousingById(@PathVariable Long id) {
-        return housingService.getHousingById(id);
+    public ResponseEntity<?> getHousingById(@PathVariable Long id) {
+
+        try{
+        HousingDTO housingDTO = housingService.getHousingById(id);
+            return  ResponseEntity.status(HttpStatus.OK).body(housingDTO);
+        }catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Housing not found with ID: " + id + ".");
+        }
     }
 
     @GetMapping("/getImagesByHousing/{id}")

@@ -6,6 +6,7 @@ import com.example.testchatgpt.model.Housing;
 import com.example.testchatgpt.model.Photo;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
@@ -14,7 +15,7 @@ public interface HousingService {
 
    List<Housing> findByCity(String city);
 
-   HousingDTO createHousing(HousingDTO housingDTO, MultipartFile[] files, Long ownerId) throws IOException;
+   HousingDTO createHousing(HousingDTO housingDTO, MultipartFile[] files) throws IOException;
 
    HousingDTO updateHousing(Long id, HousingDTO housingDTO, MultipartFile[] files, Long ownerId) throws IOException;
 

@@ -1,13 +1,13 @@
 package com.example.testchatgpt.Service;
 
+import com.example.testchatgpt.dto.WalletDTO;
 import com.example.testchatgpt.model.User;
-import com.example.testchatgpt.model.Wallet;
 
 import java.util.List;
 
 public interface UserService {
 
-    User createUser(User user, Wallet wallet);
+    User createUser(User user);
 
     User getUserById(Long id);
 

@@ -2,10 +2,15 @@ package com.example.testchatgpt.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.Hibernate;
+
+import java.util.Objects;
 
 @Entity
 @Table(name = "photo")
-@Data
+@Getter
+@Setter
+@ToString
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
@@ -18,6 +23,7 @@ public class Photo {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "housing_id", referencedColumnName = "id")
+    @ToString.Exclude
     private Housing housing;
 
     @Column(name = "data", nullable = false, columnDefinition = "mediumblob")
@@ -26,5 +32,18 @@ public class Photo {
     public Photo(String fileName, byte[] data) {
         this.fileName = fileName;
         this.data = data;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+        Photo photo = (Photo) o;
+        return id != null && Objects.equals(id, photo.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
     }
 }

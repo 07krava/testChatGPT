@@ -1,7 +1,6 @@
 package com.example.testchatgpt.controller;
 
 import com.example.testchatgpt.Service.PropertyService;
-import com.example.testchatgpt.model.Housing;
 import com.example.testchatgpt.model.Property;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;

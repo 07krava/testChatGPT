@@ -3,10 +3,9 @@ package com.example.testchatgpt.model;
 import org.springframework.security.core.GrantedAuthority;
 
 public enum Role implements GrantedAuthority {
-    RENTER(1, "RENTER"),
-    OWNER(2,"OWNER"),
-    ADMIN(3, "ADMIN"),
-    USER(4, "USER");
+    ADMIN(1, "ADMIN"),
+    USER(2, "USER"),
+    OWNER(3,"OWNER");
 
     private int id;
     private String name;

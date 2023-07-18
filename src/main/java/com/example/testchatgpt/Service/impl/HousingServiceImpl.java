@@ -5,6 +5,8 @@ import com.example.testchatgpt.Service.PhotoService;
 import com.example.testchatgpt.dto.HousingDTO;
 import com.example.testchatgpt.dto.LocationDTO;
 import com.example.testchatgpt.dto.PhotoDTO;
+import com.example.testchatgpt.errors.HousingNotFoundException;
+import com.example.testchatgpt.errors.UnauthorizedUserException;
 import com.example.testchatgpt.model.*;
 import com.example.testchatgpt.repository.BookingRepository;
 import com.example.testchatgpt.repository.HousingRepository;
@@ -13,9 +15,12 @@ import com.example.testchatgpt.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -23,6 +28,7 @@ import java.util.stream.Collectors;
 import static com.example.testchatgpt.dto.HousingDTO.convertToDTO;
 import static com.example.testchatgpt.dto.HousingDTO.convertToEntity;
 import static com.example.testchatgpt.dto.PhotoDTO.convertToPhoto;
+import static java.util.stream.Collectors.toSet;
 
 @Slf4j
 @Service
@@ -69,9 +75,12 @@ public class HousingServiceImpl implements HousingService {
     }
 
     @Override
-    public HousingDTO createHousing(HousingDTO housingDTO, MultipartFile[] files, Long ownerId) throws IOException {
+    public HousingDTO createHousing(HousingDTO housingDTO, MultipartFile[] files) throws IOException {
 
-        User owner = userRepository.findById(ownerId).orElseThrow(() -> new EntityNotFoundException("Owner not found by id " ));
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        User owner = userRepository.findByUsername(username);
 
         Housing housing = new Housing();
         housing.setDescription(housingDTO.getDescription());
@@ -84,6 +93,7 @@ public class HousingServiceImpl implements HousingService {
         housing.setHousingType(housingDTO.getHousingType());
         housing.setActive(housingDTO.isActive());
 
+        owner.getRoles().add(Role.OWNER);
         housing.setOwner(owner);
 
         housingRepository.save(housing);
@@ -217,16 +227,13 @@ public class HousingServiceImpl implements HousingService {
         return photo;
     }
 
+    //////////////Changed///////////////
     @Override
     public List<HousingDTO> getAllHousing() {
         List<Housing> housingEntities = housingRepository.findAll();
-        List<HousingDTO> housingDTOS = new ArrayList<>();
-
-        for (Housing housingEntity : housingEntities) {
-            housingDTOS.add(convertToDTO(housingEntity));
-        }
-
-        return housingDTOS;
+        return housingEntities.stream()
+                .map(HousingDTO::convertToDTO)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -255,48 +262,86 @@ public class HousingServiceImpl implements HousingService {
 
     @Override
     public HousingDTO getHousingById(Long id) {
-        Optional<Housing> housingEntityOptional = housingRepository.findById(id);
-        if (housingEntityOptional.isPresent()) {
-            Housing housingEntity = housingEntityOptional.get();
-            return convertToDTO(housingEntity);
+
+        Optional<Housing> housingOptional = housingRepository.findById(id);
+        if (housingOptional.isPresent()) {
+            return housingOptional.map(HousingDTO::convertToDTO).orElse(null);
         } else {
-            throw new NullPointerException("Housing not found with id: " + id);
+            throw new HousingNotFoundException(id.toString());
         }
+
+//        Optional<Housing> housingEntityOptional = housingRepository.findById(id);
+//        if (housingEntityOptional.isPresent()) {
+//            Housing housingEntity = housingEntityOptional.get();
+//            return convertToDTO(housingEntity);
+//        } else {
+//            throw new NullPointerException("Housing not found with id: " + id);
+//        }
     }
 
     @Override
     public List<Housing> getAvailableHousings(Date startDate, Date endDate) {
         List<Housing> allHousing = housingRepository.findAll();
-        Set<Housing> bookedHousing = new HashSet<>();
-        for (Housing housing : allHousing) {
-            for (Booking booking : housing.getBookings()) {
-                if (isOverlapping(booking.getStartDate(), booking.getEndDate(), startDate, endDate)) {
-                    bookedHousing.add(housing);
-                    break;
-                }
-            }
-        }
-        allHousing.removeAll(bookedHousing);
+        Set<Housing> availableHousings = allHousing.stream()
+                .filter(housing -> housing.getBookings().stream()
+                        .anyMatch(booking -> isOverlapping(booking.getStartDate(), booking.getEndDate(), startDate, endDate)))
+                .collect(Collectors.toSet());
+        allHousing.removeAll(availableHousings);
         return allHousing;
     }
+
+//    @Override
+//    public List<Housing> getAvailableHousings(Date startDate, Date endDate) {
+//        List<Housing> allHousing = housingRepository.findAll();
+//        Set<Housing> bookedHousing = new HashSet<>();
+//        for (Housing housing : allHousing) {
+//            for (Booking booking : housing.getBookings()) {
+//                if (isOverlapping(booking.getStartDate(), booking.getEndDate(), startDate, endDate)) {
+//                    bookedHousing.add(housing);
+//                    break;
+//                }
+//            }
+//        }
+//        allHousing.removeAll(bookedHousing);
+//        return allHousing;
+//    }
 
     private boolean isOverlapping(Date start1, Date end1, Date start2, Date end2) {
         return start1.before(end2) && start2.before(end1);
     }
 
+//    @Override
+//    public List<Housing> getBookedHousing(Date startDate, Date endDate) {
+//        List<Housing> allHousing = housingRepository.findAll();
+//
+//        return allHousing.stream()
+//                .filter(housing -> housing.getBookings().stream()
+//                        .anyMatch(booking -> isOverlapping(booking.getStartDate(), booking.getEndDate(), startDate, endDate)))
+//                .distinct().collect(Collectors.toList());
+    //}
+
     @Override
     public List<Housing> getBookedHousing(Date startDate, Date endDate) {
         List<Housing> allHousing = housingRepository.findAll();
-        Set<Housing> bookedHousing = new HashSet<>();
-        for (Housing housing : allHousing) {
-            for (Booking booking : housing.getBookings()) {
-                if (isOverlapping(booking.getStartDate(), booking.getEndDate(), startDate, endDate)) {
-                    bookedHousing.add(housing);
-                    break;
-                }
-            }
-        }
-        allHousing.removeAll(bookedHousing);
-        return new ArrayList<>(bookedHousing);
+        return allHousing.stream()
+                .filter(housing -> housing.getBookings().stream()
+                        .anyMatch(booking -> isOverlapping(booking.getStartDate(), booking.getEndDate(), startDate, endDate)))
+                .collect(Collectors.toList());
     }
+
+//    @Override
+//    public List<Housing> getBookedHousing(Date startDate, Date endDate) {
+//        List<Housing> allHousing = housingRepository.findAll();
+//        Set<Housing> bookedHousing = new HashSet<>();
+//        for (Housing housing : allHousing) {
+//            for (Booking booking : housing.getBookings()) {
+//                if (isOverlapping(booking.getStartDate(), booking.getEndDate(), startDate, endDate)) {
+//                    bookedHousing.add(housing);
+//                    break;
+//                }
+//            }
+//        }
+//        allHousing.removeAll(bookedHousing);
+//        return new ArrayList<>(bookedHousing);
+//    }
 }

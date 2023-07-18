@@ -3,20 +3,21 @@ package com.example.testchatgpt.controller;
 import com.example.testchatgpt.Service.UserService;
 import com.example.testchatgpt.dto.UserLoginDTO;
 import com.example.testchatgpt.dto.UserRegistrationDTO;
+import com.example.testchatgpt.dto.WalletDTO;
 import com.example.testchatgpt.model.User;
+import com.example.testchatgpt.model.Wallet;
 import com.example.testchatgpt.security.CustomUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.math.BigDecimal;
 
 @RestController
+@CrossOrigin
 @RequestMapping("/api/auth")
 public class AuthController {
     private final UserService userService;
@@ -38,8 +39,14 @@ public class AuthController {
         newUser.setEmail(registrationDTO.getEmail());
         newUser.setPhone(registrationDTO.getPhone());
 
+        WalletDTO walletDTO = new WalletDTO("", BigDecimal.ZERO, BigDecimal.ZERO);
+        Wallet wallet = WalletDTO.convertToWallet(walletDTO);
+        wallet.setUser(newUser);
+        newUser.setWallet(wallet);
+
+
         try {
-            userService.createUser(newUser, null);
+            userService.createUser(newUser);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

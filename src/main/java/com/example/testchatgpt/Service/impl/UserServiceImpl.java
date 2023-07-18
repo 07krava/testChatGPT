@@ -1,6 +1,7 @@
 package com.example.testchatgpt.Service.impl;
 
 import com.example.testchatgpt.Service.UserService;
+import com.example.testchatgpt.dto.WalletDTO;
 import com.example.testchatgpt.model.Role;
 import com.example.testchatgpt.model.User;
 import com.example.testchatgpt.model.Wallet;
@@ -10,6 +11,7 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -25,20 +27,21 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User createUser(User user, Wallet wallet) {
+    public User createUser(User user) {
 
         User existingUser = userRepository.findByUsername(user.getUsername());
+        WalletDTO walletDTO = new WalletDTO("",BigDecimal.ZERO, BigDecimal.ZERO);
 
         if (existingUser != null){
             throw new RuntimeException("This user already exists!");
         }
 
         Wallet walletEntity = new Wallet();
-        if (wallet != null) {
-            walletEntity.setBalance(wallet.getBalance());
-            walletEntity.setCurrency(wallet.getCurrency());
-            walletEntity.setFrozenBalance(wallet.getFrozenBalance());
-        }
+
+            walletEntity.setBalance(walletDTO.getBalance() != null ? walletDTO.getBalance() : BigDecimal.ZERO);
+            walletEntity.setCurrency(walletDTO.getCurrency());
+            walletEntity.setFrozenBalance(walletDTO.getFrozenBalance()!= null ? walletDTO.getFrozenBalance() : BigDecimal.ZERO);
+
         walletEntity.setUser(user);
 
         user.setWallet(walletEntity);

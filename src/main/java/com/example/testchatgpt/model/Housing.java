@@ -3,10 +3,8 @@ package com.example.testchatgpt.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.hibernate.Hibernate;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -15,7 +13,9 @@ import java.util.Objects;
 import java.util.Set;
 
 @Entity
-@Data
+@Getter
+@Setter
+@ToString
 @Table(name = "housing")
 @Builder
 @AllArgsConstructor
@@ -56,6 +56,7 @@ public class Housing {
 
     @JsonIgnore
     @OneToMany(mappedBy = "housing", cascade = CascadeType.ALL)
+    @ToString.Exclude
     private List<Photo> photos = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
@@ -65,14 +66,24 @@ public class Housing {
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id")
+    @ToString.Exclude
     private User owner;
 
     @JsonIgnore
     @OneToMany(mappedBy = "housing", cascade = CascadeType.ALL)
+    @ToString.Exclude
     private Set<Booking> bookings;
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+        Housing housing = (Housing) o;
+        return id != null && Objects.equals(id, housing.id);
+    }
+
+    @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return getClass().hashCode();
     }
 }
